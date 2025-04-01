@@ -1,0 +1,199 @@
+#########################################################
+# Predicting Gender Using Dental Metrics
+#########################################################
+
+#### ================================================
+### 📌 Step 1: Problem Definition
+### ================================================
+
+
+## Objective:
+## The goal of this project is to analyze a dataset containing various dental measurements 
+## and use them to build a machine learning model that can predict the gender (Male/Female) 
+## of a person based on dental features.
+
+## Dataset Overview:
+## - The dataset consists of 1,100 records.
+## - It includes various dental measurements, such as intercanine distance, canine width, 
+## and canine index values.
+## - The target variable is "Gender", which we will convert into numerical values for model building.
+
+
+#### ==========================
+#### Step 2: Import Libraries
+#### ==========================
+
+import pandas as pd  # Data manipulation
+import numpy as np  # Numerical computations
+import matplotlib.pyplot as plt  # Data visualization
+import seaborn as sns  # Advanced visualization
+from sklearn.model_selection import train_test_split  # Splitting data
+from sklearn.preprocessing import LabelEncoder, Normalizer  # Encoding & Normalization
+from sklearn.linear_model import LogisticRegression  # Machine Learning Model
+from sklearn.tree import DecisionTreeClassifier  # Machine Learning Model
+from sklearn.ensemble import RandomForestClassifier  # Machine Learning Model
+from xgboost import XGBClassifier  # Machine Learning Model
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_curve, auc  # Model evaluation
+
+#### Set Seaborn style
+
+sns.set(style="whitegrid")
+
+### ================================================
+### 📌 Step 3: Load Dataset
+### ================================================
+
+df = pd.read_csv("C:/Users/91885/Desktop/Eduonix/16301843/Dentistry Dataset.csv")
+
+#### Display first few rows
+
+df.head()
+
+#### Check basic dataset information
+
+df.info()
+
+df.count()
+
+### ================================================
+### 📌 Step 4: Data Preprocessing
+### ================================================
+
+## """
+## This step involves handling missing values, encoding categorical variables, and
+## normalizing numerical features.
+## """
+
+#### Check for missing values
+
+df.isnull().sum()
+
+#### Drop the 'Sample ID' column as it contains only NaN values
+
+df.drop(columns=['Sample ID'], inplace=True)
+
+df.count()
+
+#### Encode the 'Gender' column (Male=1, Female=0)
+
+label_encoder = LabelEncoder()
+df['Gender'] = label_encoder.fit_transform(df['Gender'])
+
+df
+
+#### Split Independent (X) and Dependent (Y) Variables
+
+X = df.drop(columns=['Sl No', 'Gender'])  # Features
+y = df['Gender']  # Target Variable
+
+print(X)
+print(y)
+
+#### Normalize the X variable to scale values
+
+normalizer = Normalizer()
+X_normalized = normalizer.fit_transform(X)
+
+X
+
+### ================================================
+### 📌 Step 5: Exploratory Data Analysis (EDA)
+### ================================================
+
+## """
+## EDA involves analyzing feature distributions and understanding correlations.
+## """
+
+#### Visualizing feature distributions
+
+# Create the DataFrame with feature names
+X_df = pd.DataFrame(X, columns=df.drop(columns=['Sl No', 'Gender']).columns)
+
+# Plot histograms with 2 graphs per row
+X_df.hist(figsize=(14, 10), bins=20, edgecolor='black', layout=(len(X_df.columns) // 2 + 1, 2))
+
+# Set the title
+plt.suptitle("Feature Distributions", fontsize=14)
+
+# Show the plot
+plt.tight_layout()
+plt.show()
+
+
+#### Correlation Heatmap
+
+plt.figure(figsize=(12, 6))
+corr_matrix = df.corr()
+sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", fmt=".2f", linewidths=0.5)
+plt.title("Feature Correlation Heatmap")
+plt.show()
+
+### ================================================
+### 📌 Step 6: Model Building
+### ================================================
+
+## """
+## In this step, we train multiple machine learning models to predict gender.
+## """
+
+##### Splitting data into training (80%) and testing (20%) sets
+
+X_train, X_test, y_train, y_test = train_test_split(X_normalized, y, test_size=0.2, random_state=42, stratify=y)
+
+### Define and train models
+
+models = {
+    "Logistic Regression": LogisticRegression(),
+    "Decision Tree": DecisionTreeClassifier(),
+    "Random Forest": RandomForestClassifier(n_estimators=100),
+    "XGBoost": XGBClassifier(use_label_encoder=False, eval_metric='logloss')
+}
+
+### Train each model and store results
+
+model_results = {}
+for name, model in models.items():
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+    model_results[name] = accuracy
+    print(f"{name} Accuracy: {accuracy:.2f}")
+
+### ================================================
+### 📌 Step 7: Model Evaluation
+### ================================================
+
+## """
+## We evaluate model performance using accuracy, confusion matrix, and ROC curves.
+## """
+
+#####  Choose the best model based on accuracy
+
+best_model_name = max(model_results, key=model_results.get)
+best_model = models[best_model_name]
+print(f"Best Model: {best_model_name} with Accuracy: {model_results[best_model_name]:.2f}")
+
+##### Generate Confusion Matrix & Classification Report
+
+y_pred_best = best_model.predict(X_test)
+print("\nClassification Report:\n", classification_report(y_test, y_pred_best))
+
+plt.figure(figsize=(6, 4))
+sns.heatmap(confusion_matrix(y_test, y_pred_best), annot=True, fmt="d", cmap="Blues")
+plt.xlabel("Predicted Label")
+plt.ylabel("True Label")
+plt.title("Confusion Matrix")
+plt.show()
+
+##### Plot ROC Curve & Compute AUC
+
+fpr, tpr, _ = roc_curve(y_test, y_pred_best)
+roc_auc = auc(fpr, tpr)
+plt.figure(figsize=(6, 4))
+plt.plot(fpr, tpr, color='blue', lw=2, label=f'ROC curve (area = {roc_auc:.2f})')
+plt.plot([0, 1], [0, 1], color='gray', linestyle='--')
+plt.xlabel("False Positive Rate")
+plt.ylabel("True Positive Rate")
+plt.title("ROC Curve")
+plt.legend(loc="lower right")
+plt.show()
