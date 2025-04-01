@@ -1,0 +1,11 @@
+## Final Outcome
+
+Final Outcome of the Project
+The gender prediction model using dental metrics was successfully developed and evaluated. After training multiple machine learning models, the Random Forest Classifier achieved the highest accuracy of 91%, making it the best-performing model for classifying gender based on dental measurements.
+
+Key Findings:
+✅ Dental features are strong predictors of gender, with intercanine distance, canine width, and other measurements contributing significantly to classification.
+✅ Random Forest outperformed other models, including Logistic Regression, Decision Tree, and XGBoost, in terms of accuracy and reliability.
+✅ The model can aid forensic and dental studies, demonstrating the potential use of machine learning in gender determination from dental records.
+
+This project validates the feasibility of using dental metrics for gender classification and opens avenues for further improvements using larger datasets and advanced techniques. 🚀
